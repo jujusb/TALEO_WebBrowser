@@ -1,0 +1,22 @@
+HashSet tableMotsGenerale : String mot->Liste<int texte>
+HashSet texte : String mot -> int TFIDF
+Tab tableTextes : int texte -> HashSet texte
+
+
+n pages, k mots -> n+2 structures de données avec un total de kn+k+n entrées
+
+
+
+PARCOURS DES TEXTES :
+1- Pour chaque texte, parcourir les mots et remplir la table texte avec des 0 ou des 1, remplir tableMotsGenerale et tableTextes en même temps
+2- Une fois cela fait, repasser sur chaque texte et calculer le TFIDF de chaque mot pour remplir la table texte
+
+RECEPTION D'UNE REQUETE :
+1- Découpage de la requête : List mots : Liste<String>
+2- Avec tableMotsGenerale, obtention des textes utilisant chaque mot
+3- Avec tableTextes, obtention de la structure texte pour chaque donnée précédemment obtenue
+4- Avec la structure texte, obtention du TFIDF de chaque mot de la requête
+5- Calcul de score par texte
+6- Tri des textes
+7- Renvoi des textes sélectionnés
+
