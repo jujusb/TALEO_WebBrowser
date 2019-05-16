@@ -1,0 +1,108 @@
+---
+title: "TP4"
+author: "Guillaume, Julio, Pierre-Yves"
+date: "15 mai 2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Exercice 1 :
+1)
+(a)
+```{r Table hotdog}
+tab<-read.table("hotdogs.txt",header=TRUE)
+head(tab)
+str(tab)
+```
+
+(b) nbre d'observation par type
+```{r nbre d'observation par type}
+table(tab$Type)
+tab=tab[-which(tab$Type==4),]
+table(tab$Type)
+```
+
+On enlève l'échantillon unique dont le type est 4 (soja).
+
+(c)
+```{r 1c}
+tab$Type=as.factor(tab$Type)
+```
+
+2]
+(a)
+```{r résume}
+summary(tab$Calories)
+summary(tab$Sodium)
+```
+
+(b)
+```{r 2b}
+by(tab$Calories,tab$Type,function(x) summary(x))
+```
+
+```{r 2b}
+by(tab$Sodium,tab$Type,function(x) summary(x))
+```
+```{r 2b}
+plot(Calories~Type,data=tab)
+plot(Sodium~Type,data=tab)
+```
+
+(c) 
+Le type 3 contient moins de calories mais plus de sodium.
+Les types 1 et 2 sont similaire au niveaux des calories mais au niveau du sodium le type 2 est plus salé.
+
+3]
+(a) modèle 2 des effets
+calories[ij]=mu[i]+epsilon[ij] pour tout i=1,2,3 et j=1,...,n_i
+avec mu[i]=mu(moyenne)+alpha[i] (effet du ième niveau du facteur)
+et epsilon[ij] terme d'erreur (indépendant et de loi normale centrée)
+
+(b)
+```{r modèle associé à l'expérience}
+mod1=lm(Calories~Type,data=tab)
+par(mfrow=c(2,2))
+plot(mod1)
+```
+Les hypothèses sont vérifiées (résidus suivant une loi normale).
+(c)
+```{r anova}
+anova(mod1)
+```
+Test si les mu[i]=mu+alpha[i] (alpha[i] égaux et nuls) égaux entre eux ou un différent pour au moins un couple 
+HO:{pour tout i=1,..,3, alpha[i]=0}
+        Sum Sq Mean Sq  Fvalue
+Type      SCM   CCM     CCM/CCR
+Résidus   SCR   CCR
+
+(d)
+```{r summary}
+summary(mod1)
+```
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)   ^mu
+Type 2        ^alpha2
+Type 3        ^alpha3
+
+contrainte alpha1=0
+
+Type1  : ^Y1 =  ^mu+^alpha1=^mu
+Type2  : ^Y2 =  ^mu+^alpha2=156,85+1,85
+R² =0,38  ^sigma²=23,46
+
+(e) 
+```{r lsmeans}
+library(lsmeans)
+lsmeans(mod1,pairwise~Type,data=tab,adjust="bonferroni")
+```
+
+lsmean : nombre moyen de catégorie pour chaque tyupe
+    $contrasts
+ contrast  estimate SE df z.ratio p.value (proba critique avec alpha=5)
+1-2
+1-3 
+2-3 

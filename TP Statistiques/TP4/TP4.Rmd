@@ -1,0 +1,109 @@
+---
+title: "TP4"
+author: "Guillaume, Julio, Pierre-Yves"
+date: "15 mai 2019"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Exercice 1 :
+1)
+(a)
+```{r Table hotdog}
+tab<-read.table("hotdogs.txt",header=TRUE)
+head(tab)
+str(tab)
+```
+
+(b) nbre d'observation par type
+```{r nbre d observation par type}
+table(tab$Type)
+tab=tab[-which(tab$Type==4),]
+table(tab$Type)
+```
+
+On enlève l'échantillon unique dont le type est 4 (soja).
+
+(c)
+```{r 1c}
+tab$Type=as.factor(tab$Type)
+```
+
+2]
+(a)
+```{r résume}
+summary(tab$Calories)
+summary(tab$Sodium)
+```
+
+(b)
+```{r 2b Tab Calories}
+by(tab$Calories,tab$Type,function(x) summary(x))
+```
+
+```{r TabSodium}
+by(tab$Sodium,tab$Type,function(x) summary(x))
+```
+```{r 2b plots}
+plot(Calories~Type,data=tab)
+plot(Sodium~Type,data=tab)
+```
+
+(c) 
+Le type 3 contient moins de calories mais plus de sodium.
+Les types 1 et 2 sont similaire au niveaux des calories mais au niveau du sodium le type 2 est plus sal?.
+
+3]
+(a) modèle 2 des effets
+$calories_{ij}=5\mu_i+\epsilon_{ij}$ $\forall i=1,2,3$ et $j=1,...,n_i$
+avec $\mu_i=\mu(=moyenne)+\alpha_i$ (effet du $i^{ème}$ niveau du facteur)
+et $\epsilon_{ij}$ terme d'erreur (ind?pendant et de loi normale centr?e)
+
+(b)
+```{r modèle associé à l expérience}
+mod1=lm(Calories~Type,data=tab)
+par(mfrow=c(2,2))
+plot(mod1)
+```
+Les hypothèses sont vérifiées (résidus suivant une loi normale).
+(c)
+```{r anova}
+anova(mod1)
+```
+Test si les $\mu_i=\mu+\alpha_i$ ($\alpha_i$] égaux et nuls) égaux entre eux ou un diff?rent pour au moins un couple 
+$H_0:\{\forall i=1,..,3, \alpha_i=0\}$
+        Sum Sq Mean Sq  Fvalue
+Type      $SCM$   $CCM$     ${CCM}/{CCR}$
+R?sidus   $SCR$   $CCR$
+
+(d)
+```{r summary}
+summary(mod1)
+```
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) $\widehat{\mu}$
+Type 2      $\widehat{\alpha_2}$
+Type 3      $\widehat{\alpha_3}$
+
+contrainte $\alpha_1$=0
+
+Type1  : $\widehat{Y_1} =\widehat{\mu}+\widehat{\alpha_1}=\widehat{\mu}$
+Type2  : $\widehat{Y_2} = \widehat{\mu}+\widehat{\alpha_2}=156,85+1,85$
+R² =0,38 $\widehat{\sigma²}=23,46$
+
+(e) 
+```{r lsmeans}
+library(lsmeans)
+lsmeans(mod1,pairwise~Type,data=tab,adjust="bonferroni")
+```
+
+lsmean : nombre moyen de catégorie pour chaque tyupe
+    contrasts
+ contrast  estimate SE df z.ratio p.value (proba critique avec alpha=5)
+1-2
+1-3 
+2-3
+

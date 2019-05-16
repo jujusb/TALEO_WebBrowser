@@ -1,0 +1,236 @@
+---
+title: "TP3"
+author: "Guillaume, Julio, Pierre-Yves"
+date: "24 avril 2019"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+TP3
+
+#Exercice 1
+
+##1/1ecture du fichier
+```{r 1/1ecture du fichier}
+tab=read.csv("Advertising.csv",header=T,row.names=1)
+attach(tab)
+summary(tab)
+pub=data.frame(data=tab)
+summary(pub)
+```
+
+##2/matrice de correlation
+```{r 2/matrice de correlation}
+mcor=cor(pub)
+mcor
+```
+
+On remarque que : 
+> les ventes et la pub sur la TV sont très corrélés (0,78);
+> les ventes et la pub sur la radio sont plutôt corrélés (0,57);
+> les ventes et la pub sur les journaux sont moins bien corrélés (0,22);
+> la corrélation entre la pub sur la radio et les journaux est assez peu corrélé (0,35).
+
+##3/Régression linéaire simple
+```{r regression linéaire simple sales sur la var TV bis}
+plot(pub$data.TV,pub$data.Sales)
+regTV=lm(data.Sales~data.TV,data=pub)
+lines(c(min(pub$data.TV),max(pub$data.TV)),c(min(regTV$fitted.values),max(regTV$fitted.values)),col="blue",lwd=3)
+#plot(regTV)
+summary(regTV)#plot(X=data.TV,Y=data.Sales,data=pub)
+anova(regTV)
+```
+
+Le modèle n'est pas ajusté aux données (R²=0,61).
+La pub sur la TV a un effet sur la vente (Fvalue=312).
+
+
+##4/
+```{r regression linéaire simple sales sur la var Radio}
+plot(pub$data.Radio,pub$data.Sales)
+regRadio=lm(data.Sales~data.Radio,data=pub)
+lines(c(min(pub$data.TV),max(pub$data.TV)),c(min(regRadio$fitted.values),max(regRadio$fitted.values)),col="blue",lwd=3)
+#plot(regTV)
+summary(regRadio)#plot(X=data.TV,Y=data.Sales,data=pub)
+anova(regRadio)
+```
+
+```{r regression linéaire simple sales sur la var TV}
+plot(pub$data.Newspaper,pub$data.Sales)
+regNP=lm(data.Sales~data.Newspaper,data=pub)
+lines(c(min(pub$data.TV),max(pub$data.TV)),c(min(regNP$fitted.values),max(regNP$fitted.values)),col="blue",lwd=3)
+par(mfrow=c(2,2))
+plot(regNP)
+summary(regNP)#plot(X=data.TV,Y=data.Sales,data=pub)
+anova(regNP)
+```
+
+##5/regression multiple
+```{r regression multiple 1}
+reg=lm(data.Sales~data.TV+data.Radio+data.Newspaper,data=pub)
+summary(reg)
+reg$coefficients
+```
+
+Concretement,$\beta_0$ représente le nombre de ventes sans pub.
+Le poucentage de la variabilité des ventes est expliqué ici est de 89% (R²=0,89).
+
+
+##6 et 7/regression multiple
+```{r regression multiple 2}
+anova(reg)
+```
+Au moins une des variables ici TV et Radio sont significatives.
+
+8/
+```{r regression multiple sans les newpapers}
+reg=lm(data.Sales~data.TV+data.Radio,data=pub)
+summary(reg)
+reg$coefficients
+```
+0,19x10=1,9
+Augmentation de 100 objets vendus.
+
+9/
+```{r eq}
+library(rgl)
+library(car)
+scatter3d(data.Sales~data.TV+data.Radio, data=pub)
+```
+
+10/
+```{r predic}
+x0=data.frame(data.TV=100,data.Radio=20)
+borne=predict(reg,x0,interval='prediction')
+borne
+```
+
+on s'attend à vendre environ 11256 produits. 
+L'intervalle est entre 7929 produits et 14583 produits.
+
+#Exercice 3
+1/
+```{r lecture fichier}
+tab=read.table("cafe.txt",header=T)
+#summary(tab)
+cafe=data.frame(tab)
+summary(cafe)
+```
+
+2/
+(a)
+```{r modele}
+modele1=lm(perte~lumin+xa+xb+xy+xgn,data=cafe)
+summary(modele1)
+modele1$coefficients
+```
+
+(b)
+```{r anova modèle}
+anova(modele1)
+```
+Les variables qui ont un effet significatif sont lumin, xa et xb.
+
+(c)
+```{r B3 significativement différent de 0}
+summary(modele1)
+```
+
+Donc $\beta_3$ pas  significativement différent de $0$ (car pour xb : $Pr(>|t|)<5%$).
+
+3/
+```{r correlation}
+cor(cafe[,-1])
+```
+On a xgn,xy et xa qui sont très corrélés avec lumin.
+
+4/
+(a)
+```{r modele variables les plus pertinantes 4a}
+modele2=step(modele1, direction="backward")
+```
+AIC plus petite que le START
+-> AIC la plus petite possible : arrêt de l'algo
+AIC=vraisemblance + pénalité liée au nombre de paramètre
+
+(b)
+```{r modele variables les plus pertinantes 4b}
+anova(modele2)
+```
+Les variables significatives sont xa,xb et xgn au risque de 5%
+
+```{r Minimiser la perte en eau}
+summary(modele2)
+```
+Pour minimiser la perte en eau : 
+xa $\beta$=-1,3 > valeurs grande > maximiser xa
+xb $\beta$=0,13 > valeurs petite > minimiser xb
+xgn $\beta$=-0,41 > valeurs grande> maximiser xgn
+
+5/
+(a)
+```{r représentation graphique 5a}
+plot(perte~lumin, data=cafe)
+plot(perte~xa, data=cafe)
+plot(perte~xb, data=cafe)
+plot(perte~xy, data=cafe)
+plot(perte~xgn, data=cafe)
+```
+```{r représentation graphique 5b}
+pairs(cafe[,2:7])
+```
+
+Le choix du staticien est valable quant aux nouvelles variables pour voir si les variables expliquent mieux avec une courbe inverse(car pour lumin, xy et xgn on a l'impression de voir une fonction inverse).
+
+(b)
+```{r ajout des variables}
+cafe2=data.frame(cafe,Tlumin=1/cafe$lumin,Txy=1/cafe$xy,Txgn=1/cafe$xgn)
+```
+
+(c)
+```{r modele 5c}
+modele3=lm(perte~lumin+xa+xb+xy+xgn+Tlumin+Txy+Txgn,data=cafe2)
+summary(modele3)
+modele3$coefficients
+```
+
+(d)
+```{r modele variables les plus pertinantes}
+modele4=step(modele3, direction="backward")
+anova(modele4)
+```
+
+modele variables stepwide = les 2 ajouts et suppressions de variables
+```{r modele variables stepwide les 2 ajouts et suppressions de variables}
+modele5=step(modele3, direction="both")
+anova(modele5)
+```
+
+6/
+```{r AIC modèles }
+extractAIC(modele1)
+extractAIC(modele2)
+extractAIC(modele3)
+extractAIC(modele4)
+```
+Le meilleur modèle en terme de AIC est le modèle 4.
+
+```{r R2 modèles }
+res1=summary(modele1)
+res1$adj.r.squared
+res2=summary(modele2)
+res2$adj.r.squared
+res3=summary(modele3)
+res3$adj.r.squared
+res4=summary(modele4)
+res4$adj.r.squared
+```
+Le meilleur modèle en terme de R² est le modèle 4.
+
+Dans R, ajuster c'est pour la régression multiple.

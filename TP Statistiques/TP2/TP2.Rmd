@@ -1,0 +1,161 @@
+---
+title: "TP2 - Régression linéaire"
+author: "Guillaume, Julio, Pierre-Yves"
+date: "28 mars 2019"
+output:
+  word_document:
+    fig_caption: yes
+    keep_md: yes
+    toc: yes
+    toc_depth: 4
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '4'
+  pdf_document:
+    toc: yes
+    toc_depth: '4'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(rmarkdown)
+```
+
+#Exercice 1 : 
+
+##1/Lire le fichier de données Courrier.txt
+```{r lecture des données}
+courrier = read.table("Courrier.txt")
+colnames(courrier)=c("Poids","Nb_lettres")
+attach(courrier)
+```
+
+##2/
+```{r plot}
+plot(Poids,Nb_lettres,xlab="Poids du courrier (t)",ylab="Nombre de lettres",pch=19,xlim=c(9,39),ylim=c(700,2500))
+```
+
+Le modèle linéaire semble adapté à notre problème de régression
+Modèle : pour tout $i=1,...,21  Nblettres_i = \beta_0 + \beta_1*Poids_i + \epsilon_i$ 
+avec $E_i$ suivant la loi $N(0,\sigma²)$
+
+##3/ Modèle de régression linéaire
+```{r resume}
+reg = lm(Nb_lettres~Poids,data=courrier)
+resume=summary(reg)
+#resume 
+```
+```{r resume2}
+### str(reg)
+### str(resume)
+### summary(courrier)
+```
+
+Valeurs des coefficient de $\beta0$ et $\beta_1$ 
+```{r B0}
+B0=resume$coefficients[1]
+B0
+```
+
+
+```{r B1}
+B1=resume$coefficients[2]
+B1
+```
+
+```{r line}
+plot(Poids,Nb_lettres,xlab="Poids du courrier (t)",ylab="Nombre de lettres",pch=19,xlim=c(9,39),ylim=c(700,2500))
+x=c(min(Poids),max(Poids))
+#reg$fitted.values equivaut à dire y=B0+B1*x
+#y=reg$fitted.values
+y=B0+B1*x
+lines(x,y,col="blue",lwd=3)
+```
+
+
+##Q4/
+```{r R21}
+resume$r.squared
+### R² est de 0.9628
+```
+
+##Q5/
+```{r R2}
+S1=sum((reg$fitted.values-mean(Nb_lettres))^2)
+S2=sum((mean(Nb_lettres)-Nb_lettres)^2)
+R2=S1/S2
+R2 
+```
+##Q6/
+```{r grapheDesResidus} 
+residus = reg$fitted.values-Nb_lettres
+ychapeau=198+Poids*57.7
+plot(ychapeau,residus,col="red")
+###yr=ychapeau*0
+###lines(ychapeau,yr,col="green")
+abline(h=0,col="green")
+###yv1=ychapeau*0+2*90
+###lines(ychapeau,yv1,col="purple")
+abline(h=2*resume$sigma,col="purple")
+###yv2=ychapeau*0-2*90
+###lines(ychapeau,yv2,col="purple")
+abline(h=-2*resume$sigma,col="purple")
+```
+
+Les residus semblent avoir tendance à être compris entre $-2\sigma$ et $2\sigma$
+
+##Q7/
+```{r resumebis}
+#resume
+```
+On observe une proba critique $P(>|t|) =4,7e-15$ pour le poids or $Pr<5%$ donc le test $H_0$ est rejeté et $\beta_1$ est significativement différent de 0.
+
+```{r calculDeR2sansB1}
+R22=sum((198-mean(Nb_lettres))^2)/sum((mean(Nb_lettres)-Nb_lettres)^2)
+R22
+```
+R² dans le cas B1=0, on a 0.360, le modèle semble inintéressant) 
+
+##Q8/
+```{r valeur27.5 par calcul direct}
+B0+27.5*B1
+```
+
+```{r valeur27.5 par predict}
+frame=data.frame(Poids=27.5)
+predict(reg,newdata=frame)
+```
+
+##Q9/
+```{r calcul du quantile à 5%}
+q19=qt(0.975,19)
+q19
+```
+
+
+```{r borne inf par calcul direct}
+borne1=1784.75-q19*90*sqrt(1+1/21+((27.5-mean(Poids))^2)/(sum((Poids-mean(Poids))^2)))
+borne1
+```
+
+```{r borne sup par calcul direct}
+borne2=1784.75+q19*90*sqrt(1+1/21+((27.5-mean(Poids))^2)/(sum((Poids-mean(Poids))^2)))
+borne2
+```
+
+##Q10/
+```{r bornes supérieurs et inférieur par predict}
+borne=predict(reg,newdata=data.frame(Poids=27.5),interval='prediction')
+borne
+```
+
+```{r bornes supérieurs et inférieur par calcul}
+#poids2=v[0:40]
+borne=predict(reg,newdata=data.frame(Poids))[2]+2.093*90*sqrt(1+1/21+((Poids-mean(Poids))^2)/(sum((Poids-mean(Poids))^2)))
+borneinf=predict(reg,newdata=data.frame(Poids))[2]-2.093*90*sqrt(1+1/21+((Poids-mean(Poids))^2)/(sum((Poids-mean(Poids))^2)))
+borne
+plot(Poids,borne,col="red")
+plot(Poids,borneinf,col="red")
+```
+
